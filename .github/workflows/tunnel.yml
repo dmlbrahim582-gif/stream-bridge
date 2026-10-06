@@ -1,36 +1,27 @@
-name: Always-On Bore Tunnel
+name: Bore Tunnel Keep-Alive
 
 on:
   workflow_dispatch:
   schedule:
-    # يتم تشغيل البوت كل ساعة لتجديد الاتصال تلقائياً وضمان عدم انقطاعه
     - cron: '0 * * * *'
 
 jobs:
-  run-tunnel:
+  tunnel:
     runs-on: ubuntu-latest
+    timeout-minutes: 5 # قطع الـ Job تلقائياً بعد 5 دقائق لكي لا يعلق
     steps:
-      - name: Checkout repository
+      - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.10'
-
-      - name: Install dependencies & Start Tunnel
+      - name: Download and run bore
         run: |
-          # تحميل أداة bore إذا لم تكن موجودة أو تثبيتها عبر بايثون
-          # أو تشغيل سكربت الاتصال الخاص بك مباشرة
-          python -m pip install --upgrade pip
+          # تحميل أداة bore مباشرة وثبيتها في ثوانٍ معدودة
+          curl -sL https://github.com/ekzhang/bore/releases/download/v0.5.1/bore-v0.5.1-x86_64-unknown-linux-musl.tar.gz | tar -xz
+          chmod +x bore
           
-          # إذا كان لديك ملف متطلبات
-          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+          # تشغيل التونل على البورت المطلوب ربطه (مثلاً البورت 8554 أو البورت الخاص بك)
+          # استبدل 8554 بالبورت الذي تريده، و bore.pub بالعنوان
+          ./bore local 8554 --to bore.pub &
           
-          # تشغيل السكربت الخاص بك أو أداة bore بشكل خلفي
-          # استبدل engine.py باسم الملف الرئيسي لديك
-          nohup python engine.py &
-          
-          # إبقاء الـ Workflow حياً لفترة طويلة أو مراقبة الاتصال
-          sleep 3500
-          
+          # إبقاء الـ Action نشطاً لفترة قصيرة لضمان استقرار الاتصال
+          sleep 240
