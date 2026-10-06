@@ -1,0 +1,36 @@
+name: Always-On Bore Tunnel
+
+on:
+  workflow_dispatch:
+  schedule:
+    # يتم تشغيل البوت كل ساعة لتجديد الاتصال تلقائياً وضمان عدم انقطاعه
+    - cron: '0 * * * *'
+
+jobs:
+  run-tunnel:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      - name: Install dependencies & Start Tunnel
+        run: |
+          # تحميل أداة bore إذا لم تكن موجودة أو تثبيتها عبر بايثون
+          # أو تشغيل سكربت الاتصال الخاص بك مباشرة
+          python -m pip install --upgrade pip
+          
+          # إذا كان لديك ملف متطلبات
+          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+          
+          # تشغيل السكربت الخاص بك أو أداة bore بشكل خلفي
+          # استبدل engine.py باسم الملف الرئيسي لديك
+          nohup python engine.py &
+          
+          # إبقاء الـ Workflow حياً لفترة طويلة أو مراقبة الاتصال
+          sleep 3500
+          
